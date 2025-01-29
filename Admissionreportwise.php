@@ -83,14 +83,12 @@ include('include/sidebar.php');
                     </div>
                     <div class="col-md-4 mb-2">
                         <div class="input-group">
-                           
-                            <select class="form-control" onchange="filterbybranch(this)">
+                        <label class="input-group-text" >Branch</label>
+                            <select class="form-control" id="branchFilter">
 <?php 
 $sql = "SELECT * FROM branch";
 $result = $con->query($sql);
-echo !empty($_GET['branch']) 
-    ? '<option value="' . $_GET['branch'] . '">' . ($_GET['branch'] == 'VASAI WEST NEW' ? 'Vasai New' : ($_GET['branch'] == 'I-TECH VASAI WEST' ? 'Vasai Old' : $_GET['branch'])) . '</option>'
-    : '<option value="">Select option</option>'; // Default option
+echo '<option>Select option</option>'; // Default option
 
 // Loop through the database results and populate the select
 if ($result->num_rows > 0) {
@@ -144,6 +142,7 @@ if ($result->num_rows > 0) {
                                 <th>Balance</th>
                                 <th>Consider in month</th>
                                 <th>Consider in year</th>
+                                <th>Branch</th>
                                 <th>Action</th>
                             </tr>
                             <tr>
@@ -162,6 +161,7 @@ if ($result->num_rows > 0) {
                                 <th><input type="text" placeholder="Search by Balance" class="column_search" data-column="11" /></th>
                                 <th><input type="text" placeholder="Search by month" class="column_search" data-column="12" /></th>
                                 <th><input type="text" placeholder="Search by year" class="column_search" data-column="13" /></th>
+                                <th><input type="text" placeholder="Search by branch" class="column_search" data-column="14" /></th>
                                 <th>Action</th>
                             </tr>
                         </thead>
@@ -196,6 +196,7 @@ $selectqy = "SELECT
     t1.month,
     t1.year,
     t1.date12,
+    t1.branch,
     SUM(t2.Paid) AS total_paid, 
     MIN(t2.Balance) AS last_balance, 
     MAX(t2.Dates) AS last_payment_date, 
@@ -261,6 +262,7 @@ while ($res = mysqli_fetch_array($qy)) {
                                 <td><?php echo $res['last_balance']; ?></td>
                                 <td><?php echo $res['month']; ?></td>
                                 <td><?php echo $res['year']; ?></td>
+                                <td><?php echo $res['branch']; ?></td>
                                 <td><?php echo 'Action'; ?></td>
                             </tr>
 <?php
@@ -407,12 +409,16 @@ while ($res = mysqli_fetch_array($qy)) {
     $.fn.dataTable.ext.search.push(function (settings, data, dataIndex) {
         const selectedConsiderMonth = $('#considerMonth').val().trim();
         const selectedConsiderYear = $('#considerYear').val().trim();
-
+        var branch = $('#branchFilter').val();
         const considerMonthColumn = data[12]?.trim(); // "Consider in month" column (index 13)
         const considerYearColumn = data[13]?.trim(); // "Consider in year" column (index 14)
-
+        var branchData = data[14]; 
         // Skip rows where "Consider in Month" or "Consider in Year" is empty
         if (!considerMonthColumn || !considerYearColumn) {
+            return false;
+        }
+        if (branch && branchData !== branch) {
+            
             return false;
         }
 
@@ -431,7 +437,8 @@ while ($res = mysqli_fetch_array($qy)) {
 
         // Reset filters
         $('#resetFilters').click(function () {
-            window.location.href='admission.php'
+            
+            $('#branchFilter').val('');
             $('#fromDate').val('');
             $('#toDate').val('');
             table.draw();
@@ -445,28 +452,7 @@ while ($res = mysqli_fetch_array($qy)) {
     });
 
 
-    function filterbybranch(e) {
-    var branch = e.value; // Get the value of the selected branch
-    var currentUrl = window.location.href; // Get the current URL
-    var newUrl;
 
-    // Check if the URL already has query parameters
-    if (currentUrl.includes("?")) {
-        // If "branch" parameter already exists, replace it
-        if (currentUrl.includes("branch=")) {
-            newUrl = currentUrl.replace(/(branch=)[^&]*/, "$1" + branch);
-        } else {
-            // Append the "branch" parameter to existing query parameters
-            newUrl = currentUrl + "&branch=" + branch;
-        }
-    } else {
-        // Add the "branch" parameter to the URL
-        newUrl = currentUrl + "?branch=" + branch;
-    }
-
-    // Redirect to the new URL
-    window.location.href = newUrl;
-}
     </script>
 
 </div>

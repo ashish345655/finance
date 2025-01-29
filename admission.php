@@ -48,14 +48,12 @@ include('include/sidebar.php');
                     </div>
                     <div class="col-md-4 mb-2">
                         <div class="input-group">
-                           
-                            <select class="form-control" onchange="filterbybranch(this)">
+                        <label class="input-group-text" for="toDate">Branch</label>
+                            <select class="form-control" id="branchFilter" >
 <?php 
 $sql = "SELECT * FROM branch";
 $result = $con->query($sql);
-echo !empty($_GET['branch']) 
-    ? '<option value="' . $_GET['branch'] . '">' . ($_GET['branch'] == 'VASAI WEST NEW' ? 'Vasai New' : ($_GET['branch'] == 'I-TECH VASAI WEST' ? 'Vasai Old' : $_GET['branch'])) . '</option>'
-    : '<option value="">Select option</option>'; // Default option
+echo '<option value="">Select branch </option>'; // Default option
 
 // Loop through the database results and populate the select
 if ($result->num_rows > 0) {
@@ -109,24 +107,26 @@ if ($result->num_rows > 0) {
                                 <th>Balance</th>
                                 <th>Consider in month</th>
                                 <th>Consider in year</th>
+                                <th>branch</th>
                                 <th>Action</th>
                             </tr>
                             <tr>
                             <th></th>
                                 <th></th> <!-- Removed search input for ID -->
-                                <th><input type="text" placeholder="Search by Date" class="column_search" data-column="1" /></th>
-                                <th><input type="text" placeholder="Search by Name" class="column_search" data-column="2" /></th>
-                                <th><input type="text" placeholder="Search by Counselled By" class="column_search" data-column="3" /></th>
-                                <th><input type="text" placeholder="Search by Contact" class="column_search" data-column="4" /></th>
-                                <th><input type="text" placeholder="Search by Parent Contact" class="column_search" data-column="5" /></th>
-                                <th><input type="text" placeholder="Search by Course" class="column_search" data-column="6" /></th>
-                                <th><input type="text" placeholder="Search by Batch" class="column_search" data-column="7" /></th>
-                                <th><input type="text" placeholder="Search by Address" class="column_search" data-column="8" /></th>
-                                <th><input type="text" placeholder="Search by Fees" class="column_search" data-column="9" /></th>
-                                <th><input type="text" placeholder="Search by Paid" class="column_search" data-column="10" /></th>
-                                <th><input type="text" placeholder="Search by Balance" class="column_search" data-column="11" /></th>
-                                <th><input type="text" placeholder="Search by month" class="column_search" data-column="12" /></th>
-                                <th><input type="text" placeholder="Search by year" class="column_search" data-column="13" /></th>
+                                <th><input type="text" placeholder="Search by Date" class="column_search" data-column="2" /></th>
+                                <th><input type="text" placeholder="Search by Name" class="column_search" data-column="3" /></th>
+                                <th><input type="text" placeholder="Search by Counselled By" class="column_search" data-column="4" /></th>
+                                <th><input type="text" placeholder="Search by Contact" class="column_search" data-column="5" /></th>
+                                <th><input type="text" placeholder="Search by Parent Contact" class="column_search" data-column="6" /></th>
+                                <th><input type="text" placeholder="Search by Course" class="column_search" data-column="7" /></th>
+                                <th><input type="text" placeholder="Search by Batch" class="column_search" data-column="8" /></th>
+                                <th><input type="text" placeholder="Search by Address" class="column_search" data-column="9" /></th>
+                                <th><input type="text" placeholder="Search by Fees" class="column_search" data-column="10" /></th>
+                                <th><input type="text" placeholder="Search by Paid" class="column_search" data-column="11" /></th>
+                                <th><input type="text" placeholder="Search by Balance" class="column_search" data-column="12" /></th>
+                                <th><input type="text" placeholder="Search by month" class="column_search" data-column="13" /></th>
+                                <th><input type="text" placeholder="Search by year" class="column_search" data-column="14" /></th>
+                                <th><input type="text" placeholder="Search by branch" class="column_search" data-column="15" /></th>
                                 <th>Action</th>
                             </tr>
                         </thead>
@@ -161,6 +161,7 @@ $selectqy = "SELECT
     t1.month,
     t1.year, 
     t1.date12,
+    t1.branch,
     SUM(t2.Paid) AS total_paid, 
     MIN(t2.Balance) AS last_balance, 
     MAX(t2.Dates) AS last_payment_date, 
@@ -226,6 +227,7 @@ while ($res = mysqli_fetch_array($qy)) {
                                 <td><?php echo $res['last_balance']; ?></td>
                                 <td><?php echo $res['month']; ?></td>
                                 <td><?php echo $res['year']; ?></td>
+                                <td><?php echo $res['branch']; ?></td>
                                 <td><?php echo 'Action'; ?></td>
                             </tr>
 <?php
@@ -247,9 +249,24 @@ while ($res = mysqli_fetch_array($qy)) {
     <script src="https://cdn.datatables.net/buttons/2.0.1/js/buttons.print.min.js"></script>
 
     <script>
-    $(document).ready(function () {
-        // Initialize DataTable
-      const table = $('#paymentDataTable').DataTable({
+   $(document).ready(function () {
+    // Initialize DataTable
+    const currentDate = new Date();
+    const firstDateOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+
+    // Function to format the date as "YYYY-MM-DD"
+    const formatDate = (date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+
+    // Set default values for the date inputs
+    $('#fromDate').val(formatDate(firstDateOfMonth));
+    $('#toDate').val(formatDate(currentDate));
+
+    const table = $('#paymentDataTable').DataTable({
         dom: 'Bfrtip',
         buttons: [
             {
@@ -262,8 +279,8 @@ while ($res = mysqli_fetch_array($qy)) {
                             const headers = [
                                 "EDIT","ID", "Admission Date", "Name", "Counselled By", 
                                 "Contact No", "Parent No", "Course", "Batch", 
-                                "Address", "Fees", "Paid", "Balance", 
-                                 "Action"
+                                "Address", "Fees", "Paid", "Balance", "month", "year", "branch",
+                                "Action"
                             ];
                             return headers[columnIdx];
                         }
@@ -279,9 +296,9 @@ while ($res = mysqli_fetch_array($qy)) {
                         header: function (data, columnIdx) {
                             const headers = [
                                 "EDIT","ID", "Admission Date", "Name", "Counselled By", 
-                                "Contact No", "Parent No", "Course", "Batch", 
+                                "Contact No", "Parent No", "Course", "Batch", "month", "year", "branch",
                                 "Address", "Fees", "Paid", "Balance", 
-                                 "Action"
+                                "Action"
                             ];
                             return headers[columnIdx];
                         }
@@ -291,11 +308,6 @@ while ($res = mysqli_fetch_array($qy)) {
             {
                 extend: 'excel',
                 title: 'Admission Report',
-                customize: function (xlsx) {
-                    const sheet = xlsx.xl.worksheets['sheet1.xml'];
-                    const header = '<row r="1"><c t="inlineStr" r="A1" s="1"><is><t>Admission Report</t></is></c></row>';
-                    sheet.childNodes[0].childNodes[1].innerHTML = header + sheet.childNodes[0].childNodes[1].innerHTML;
-                },
                 exportOptions: {
                     columns: ':visible',
                     format: {
@@ -303,8 +315,8 @@ while ($res = mysqli_fetch_array($qy)) {
                             const headers = [
                                 "EDIT","ID", "Admission Date", "Name", "Counselled By", 
                                 "Contact No", "Parent No", "Course", "Batch", 
-                                "Address", "Fees", "Paid", "Balance", 
-                                 "Action"
+                                "Address", "Fees", "Paid", "Balance", "month", "year", "branch",
+                                "Action"
                             ];
                             return headers[columnIdx];
                         }
@@ -314,14 +326,6 @@ while ($res = mysqli_fetch_array($qy)) {
             {
                 extend: 'pdf',
                 title: 'Admission Report',
-                customize: function (doc) {
-                    doc.content.splice(0, 0, {
-                        text: 'Admission Report',
-                        fontSize: 14,
-                        alignment: 'center',
-                        margin: [0, 0, 0, 10]
-                    });
-                },
                 exportOptions: {
                     columns: ':visible',
                     format: {
@@ -329,8 +333,8 @@ while ($res = mysqli_fetch_array($qy)) {
                             const headers = [
                                 "EDIT","ID", "Admission Date", "Name", "Counselled By", 
                                 "Contact No", "Parent No", "Course", "Batch", 
-                                "Address", "Fees", "Paid", "Balance", 
-                                 "Action"
+                                "Address", "Fees", "Paid", "Balance", "month", "year", "branch",
+                                "Action"
                             ];
                             return headers[columnIdx];
                         }
@@ -347,8 +351,8 @@ while ($res = mysqli_fetch_array($qy)) {
                             const headers = [
                                 "EDIT","ID", "Admission Date", "Name", "Counselled By", 
                                 "Contact No", "Parent No", "Course", "Batch", 
-                                "Address", "Fees", "Paid", "Balance", 
-                                 "Action"
+                                "Address", "Fees", "Paid", "Balance", "month", "year", "branch",
+                                "Action"
                             ];
                             return headers[columnIdx];
                         }
@@ -369,65 +373,55 @@ while ($res = mysqli_fetch_array($qy)) {
         }
     });
 
-        // Add custom search filter logic for date range
-        $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
-            var fromDate = $('#fromDate').val();
-            var toDate = $('#toDate').val();
-            var admissionDate = data[2]; // assuming 'Admission Date' is in column 1 (zero-indexed)
+    // Custom search function for date range and branch
+    $.fn.dataTable.ext.search.push(function (settings, data, dataIndex) {
+        var fromDate = $('#fromDate').val();
+        var toDate = $('#toDate').val();
+        var branch = $('#branchFilter').val();
+        
+        var admissionDate = data[2]; // 'Admission Date' column index
+        var branchData = data[15]; // 'Branch' column index
+        // Date filtering logic
+        if (fromDate && admissionDate < fromDate) {
+            return false;
+        }
+        if (toDate && admissionDate > toDate) {
+            return false;
+        }
 
-            if (fromDate && admissionDate < fromDate) {
-                return false;
-            }
-            if (toDate && admissionDate > toDate) {
-                return false;
-            }
+        // Branch filtering logic (only apply if a branch is selected)
+        
+        if (branch && branchData !== branch) {
+            
+            return false;
+        }
 
-            return true;
-        });
-
-        // Filter by date button
-        $('#filterByDates').click(function () {
-            table.draw();
-        });
-
-        // Reset filters
-        $('#resetFilters').click(function () {
-            window.location.href='admission.php'
-            $('#fromDate').val('');
-            $('#toDate').val('');
-            table.draw();
-        });
-
-        // Apply column-specific search filters
-        $('input.column_search').on('keyup change', function () {
-            var columnIndex = $(this).data('column'); // Get the column index from the data-column attribute
-            table.column(columnIndex).search(this.value).draw();
-        });
+        return true;
+    });
+    table.draw();
+    // Apply filters when clicking the filter button
+    $('#filterByDates').click(function () {
+        table.draw();
     });
 
+    // Reset filters
+    $('#resetFilters').click(function () {
+        window.location.href = 'admission.php';
+        $('#fromDate').val('');
+        $('#toDate').val('');
+        $('#branchFilter').val('');
+        table.draw();
+    });
 
-    function filterbybranch(e) {
-    var branch = e.value; // Get the value of the selected branch
-    var currentUrl = window.location.href; // Get the current URL
-    var newUrl;
+    // Apply column-specific search filters
+    $('input.column_search').on('keyup change', function () {
+        var columnIndex = $(this).data('column');
+        table.column(columnIndex).search(this.value).draw();
+    });
+});
 
-    // Check if the URL already has query parameters
-    if (currentUrl.includes("?")) {
-        // If "branch" parameter already exists, replace it
-        if (currentUrl.includes("branch=")) {
-            newUrl = currentUrl.replace(/(branch=)[^&]*/, "$1" + branch);
-        } else {
-            // Append the "branch" parameter to existing query parameters
-            newUrl = currentUrl + "&branch=" + branch;
-        }
-    } else {
-        // Add the "branch" parameter to the URL
-        newUrl = currentUrl + "?branch=" + branch;
-    }
 
-    // Redirect to the new URL
-    window.location.href = newUrl;
-}
+    
     </script>
 
 </div>

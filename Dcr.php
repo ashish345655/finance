@@ -83,14 +83,12 @@ include('include/sidebar.php');
                     </div>
                     <div class="col-md-4 mb-2">
                         <div class="input-group">
-                           
-                            <select class="form-control" onchange="filterbybranch(this)">
+                        <label class="input-group-text" >Branch</label>
+                            <select class="form-control" id="branchFilter">
 <?php 
 $sql = "SELECT * FROM branch";
 $result = $con->query($sql);
-echo !empty($_GET['branch']) 
-    ? '<option value="' . $_GET['branch'] . '">' . ($_GET['branch'] == 'VASAI WEST NEW' ? 'Vasai New' : ($_GET['branch'] == 'I-TECH VASAI WEST' ? 'Vasai Old' : $_GET['branch'])) . '</option>'
-    : '<option value="">Select option</option>'; // Default option
+echo '<option>Select option</option>'; // Default option
 
 // Loop through the database results and populate the select
 if ($result->num_rows > 0) {
@@ -147,6 +145,7 @@ if ($result->num_rows > 0) {
                                 <th>Loan Applied Fees</th>
                                 <th>Consider in month</th>
                                 <th>Consider in year</th>
+                                <th>branch</th>
                             </tr>
                             <tr>
                                 <th></th>
@@ -176,6 +175,7 @@ if ($result->num_rows > 0) {
                                 <th><input type="text" placeholder="search by Loan Fees"/></th>
                                  <th><input type="text" placeholder="search by consider in month"/></th>
                                   <th><input type="text" placeholder="search by consider in year"/></th>
+                                  <th><input type="text" placeholder="branch"/></th>
                             </tr>
                         </thead>
                         <tbody id="tableBody">
@@ -223,6 +223,7 @@ while ($res = mysqli_fetch_array($qy)) {
                                 <td><?php echo $totalFees; ?></td>
                                  <td><?php echo $res['ConsiderInMonth']; ?></td>
                                   <td><?php echo $res['ConsiderInYear']; ?></td>
+                                  <td><?php echo $res['branch']; ?></td>
                             </tr>
 <?php
 }
@@ -278,7 +279,8 @@ $(document).ready(function () {
                                 "Sr no", "Date", "Receipt No", "Counselled By",
                                 "Name", "Course", "Course Fees", "Fees Paid",
                                 "Balance Fees", "Mode of Payment", "UTR No",
-                                "Cheque No", "Loan Applied Fees"
+                                "Cheque No", "Loan Applied Fees","Considerinmonth","Considerinyear",
+                                "branch"
                             ];
                             return headers[columnIdx]; // Use custom headers
                         }
@@ -296,7 +298,8 @@ $(document).ready(function () {
                                 "Sr no", "Date", "Receipt No", "Counselled By",
                                 "Name", "Course", "Course Fees", "Fees Paid",
                                 "Balance Fees", "Mode of Payment", "UTR No",
-                                "Cheque No", "Loan Applied Fees"
+                                "Cheque No", "Loan Applied Fees","Considerinmonth","Considerinyear",
+                                "branch"
                             ];
                             return headers[columnIdx]; // Use custom headers
                         }
@@ -314,7 +317,8 @@ $(document).ready(function () {
                                 "Sr no", "Date", "Receipt No", "Counselled By",
                                 "Name", "Course", "Course Fees", "Fees Paid",
                                 "Balance Fees", "Mode of Payment", "UTR No",
-                                "Cheque No", "Loan Applied Fees"
+                                "Cheque No", "Loan Applied Fees","Considerinmonth","Considerinyear",
+                                "branch"
                             ];
                             return headers[columnIdx]; // Use custom headers
                         }
@@ -332,7 +336,8 @@ $(document).ready(function () {
                                 "Sr no", "Date", "Receipt No", "Counselled By",
                                 "Name", "Course", "Course Fees", "Fees Paid",
                                 "Balance Fees", "Mode of Payment", "UTR No",
-                                "Cheque No", "Loan Applied Fees"
+                                "Cheque No", "Loan Applied Fees","Considerinmonth","Considerinyear",
+                                "branch"
                             ];
                             return headers[columnIdx]; // Use custom headers
                         }
@@ -399,12 +404,16 @@ function updateFilteredTotalFeesPaid() {
     $.fn.dataTable.ext.search.push(function (settings, data, dataIndex) {
         const selectedConsiderMonth = $('#considerMonth').val().trim();
         const selectedConsiderYear = $('#considerYear').val().trim();
-
+        var branch = $('#branchFilter').val();
         const considerMonthColumn = data[13]?.trim(); // "Consider in month" column (index 13)
         const considerYearColumn = data[14]?.trim(); // "Consider in year" column (index 14)
-
+        var branchData = data[15];
         // Skip rows where "Consider in Month" or "Consider in Year" is empty
         if (!considerMonthColumn || !considerYearColumn) {
+            return false;
+        }
+        if (branch && branchData !== branch) {
+            
             return false;
         }
 
@@ -424,11 +433,12 @@ function updateFilteredTotalFeesPaid() {
 
     // Event listener for Reset button
     $('#resetFilters').on('click', function () {
-        window.location.href='Dcr.php'
-        $('#considerMonth').val('');  // Reset the "Consider in Month" filter
-        $('#considerYear').val('');   // Reset the "Consider in Year" filter
-       table.search('').draw();
-            updateFilteredTotalFeesPaid();// Redraw the table with all data
+        window.location.reload();
+    //     $('#branchFilter').val('');
+    //     $('#considerMonth').val('');  // Reset the "Consider in Month" filter
+    //     $('#considerYear').val('');   // Reset the "Consider in Year" filter
+    //    table.search('').draw();
+    //         updateFilteredTotalFeesPaid();// Redraw the table with all data
     });
 });
 function filterbybranch(e) {

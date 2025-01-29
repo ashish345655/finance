@@ -90,7 +90,7 @@ include 'connection/dbcon.php';
               <li class="nav-item">
                 <a href="Dcr.php" class="nav-link">
                   <i class="far fa-circle nav-icon"></i>
-                  <p>DCR Report details</p>
+                  <p>DCR Report month-year (Consider)</p>
                 </a>
               </li>
               <li class="nav-item">
