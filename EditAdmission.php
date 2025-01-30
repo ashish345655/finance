@@ -154,10 +154,30 @@ if ($result) {
 name = $('#name').val();
 contact = $('#contact').val();
 course =$('#course').val()
-        // Get form data
-        var formData = {
-            Considerinmonth: $('#Considerinmonth').val(),
-            Considerinyear: $('#Considerinyear').val(),
+var currentDate = new Date();
+var currentMonth = currentDate.getMonth() + 1; // getMonth() returns 0-11, so add 1
+var currentYear = currentDate.getFullYear();
+
+// Get the input values
+var Considerinmonth = $('#Considerinmonth').val();
+var Considerinyear = $('#Considerinyear').val();
+
+// Convert the month name to a number (1-12)
+var monthNames = ["January", "February", "March", "April", "May", "June", 
+                  "July", "August", "September", "October", "November", "December"];
+var inputMonth = monthNames.indexOf(Considerinmonth) + 1;
+
+// Convert the input year to a number
+var inputYear = parseInt(Considerinyear, 10);
+
+// Validate the input
+if (inputYear > currentYear || (inputYear === currentYear && inputMonth > currentMonth)) {
+    alert("The month and year should not be in the future.");
+}
+else{
+    var formData = {
+            Considerinmonth: Considerinmonth,
+            Considerinyear: Considerinyear,
             contact:contact,
             course:course,
             name:name    
@@ -177,6 +197,8 @@ course =$('#course').val()
                 $('#response').html("Error: " + error);
             }
         });
+}
+    
     });
 });
 
@@ -190,6 +212,4 @@ var select = document.getElementById("course");
 
 
 
-<?php 
 
-?>
